@@ -1,0 +1,19 @@
+# Compiled output
+*.exe
+*.out
+*.o
+booking_system
+phase1
+phase2
+phase3
+phase4
+
+# IDE files
+.vscode/
+*.code-workspace
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -186,9 +186,6 @@ public:
     }
 };
 
-// ============================================
-// BOOKING BASE CLASS (Phase 4 - NEW)
-// ============================================
 class Booking {
 protected:
     int bookingId;

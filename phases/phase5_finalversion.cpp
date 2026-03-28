@@ -14,8 +14,6 @@
 //   Kushagra Jain      - RA2511056010289
 //   Nourice            - RA2511056010290
 //
-// Subject: LLT1 - Application Development Using Design Concepts
-// Program: B.Tech CSE (Data Science) - Semester 2
 // ================================================================
 
 #include <iostream>

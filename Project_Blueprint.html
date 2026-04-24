@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cinema & Hotel — Booking Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:    #0D0D0D;
+    --paper:  #F0EBE0;
+    --gold:   #C8A96B;
+    --gold2:  #8A6F3E;
+    --smoke:  #1A1A1A;
+    --ash:    #2A2A2A;
+    --mist:   #3D3D3D;
+    --dim:    #666;
+    --pale:   #999;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  ::selection { background: var(--gold); color: var(--ink); }
+
+  /* ── Grain overlay ───────────────────────────────────── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: .035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* ── Thin gold rule ──────────────────────────────────── */
+  .rule { width: 100%; height: 1px; background: var(--ash); margin: 0; }
+  .rule-gold { height: 1px; background: var(--gold2); }
+
+  /* ── HEADER / HERO ───────────────────────────────────── */
+  header {
+    position: relative;
+    padding: 80px 64px 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    animation: fadeUp .9s ease both;
+  }
+
+  .header-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 64px;
+  }
+
+  .eyebrow {
+    font-size: 9px;
+    letter-spacing: 5px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  .eyebrow span { color: var(--gold); }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .issue-no {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  /* ── Hero type ───────────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding-bottom: 72px;
+    border-bottom: 1px solid var(--ash);
+  }
+
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: clamp(56px, 8vw, 96px);
+    line-height: .95;
+    letter-spacing: -1px;
+    color: var(--paper);
+    margin-bottom: 8px;
+  }
+
+  .hero-title em {
+    font-style: normal;
+    color: var(--gold);
+  }
+
+  .hero-subtitle {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(18px, 3vw, 28px);
+    color: var(--dim);
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+
+  .hero-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px;
+    margin-top: 40px;
+  }
+
+  .hero-stat {
+    border-left: 2px solid var(--gold2);
+    padding-left: 16px;
+  }
+
+  .hero-stat-n {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .hero-stat-l {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--pale);
+    text-transform: uppercase;
+  }
+
+  .hero-deco {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 160px;
+    color: var(--ash);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ── Main layout ─────────────────────────────────────── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 64px 120px;
+  }
+
+  /* ── Section titles ──────────────────────────────────── */
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 56px 0 32px;
+  }
+
+  .section-label-no {
+    font-size: 9px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .section-label-line {
+    flex: 1;
+    height: 1px;
+    background: var(--ash);
+  }
+
+  .section-label-title {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--paper);
+  }
+
+  /* ── Phases ──────────────────────────────────────────── */
+  .phases { display: flex; flex-direction: column; gap: 0; }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    border-top: 1px solid var(--ash);
+    padding: 32px 0;
+    transition: background .2s;
+    cursor: default;
+  }
+
+  .phase:hover { background: rgba(200,169,107,.03); }
+  .phase:last-child { border-bottom: 1px solid var(--ash); }
+
+  .phase-num {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 48px;
+    color: var(--ash);
+    line-height: 1;
+    transition: color .2s;
+  }
+
+  .phase:hover .phase-num { color: var(--gold2); }
+
+  .phase-body { padding-top: 4px; }
+
+  .phase-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--paper);
+    margin-bottom: 6px;
+  }
+
+  .phase-concept {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .phase-desc {
+    font-size: 12px;
+    color: var(--pale);
+    line-height: 1.8;
+    max-width: 600px;
+    margin-bottom: 16px;
+  }
+
+  .phase-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .phase-tag {
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--dim);
+    border: 1px solid var(--ash);
+    padding: 3px 10px;
+    text-transform: uppercase;
+    transition: border-color .2s, color .2s;
+  }
+
+  .phase:hover .phase-tag { border-color: var(--gold2); color: var(--gold); }
+
+  /* ── Class grid ──────────────────────────────────────── */
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--ash);
+    border: 1px solid var(--ash);
+    margin-top: 8px;
+  }
+
+  .class-card {
+    background: var(--smoke);
+    padding: 24px;
+    transition: background .2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .class-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 0;
+    background: var(--gold);
+    transition: height .3s ease;
+  }
+
+  .class-card:hover { background: #161616; }
+  .class-card:hover::before { height: 100%; }
+
+  .class-card.derived { background: #131313; }
+
+  .class-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--paper);
+    margin-bottom: 2px;
+  }
+
+  .class-type {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .class-attrs {
+    list-style: none;
+    margin-bottom: 14px;
+  }
+
+  .class-attrs li {
+    font-size: 10px;
+    color: var(--dim);
+    line-height: 2;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .class-attrs li::before { content: '— '; color: var(--gold2); }
+
+  .class-methods {
+    border-top: 1px solid var(--ash);
+    padding-top: 12px;
+  }
+
+  .class-methods li {
+    font-size: 10px;
+    color: var(--mist);
+    line-height: 2;
+    list-style: none;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .class-methods li::before { content: '+ '; color: var(--gold); }
+
+  /* ── Inheritance arrow ───────────────────────────────── */
+  .inherit-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px 0;
+    justify-content: center;
+  }
+
+  .inherit-box {
+    border: 1px solid var(--gold2);
+    padding: 8px 24px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .inherit-arrow {
+    font-size: 18px;
+    color: var(--gold2);
+    padding: 0 12px;
+  }
+
+  /* ── Tech table ──────────────────────────────────────── */
+  .tech-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+
+  .tech-table tr { border-bottom: 1px solid var(--ash); }
+  .tech-table tr:first-child { border-top: 1px solid var(--ash); }
+
+  .tech-table td {
+    padding: 14px 0;
+    font-size: 12px;
+    vertical-align: top;
+  }
+
+  .tech-table td:first-child {
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    width: 160px;
+    padding-right: 24px;
+  }
+
+  .tech-table td:last-child { color: var(--pale); }
+
+  /* ── Interface ops ───────────────────────────────────── */
+  .ops-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--ash);
+    border: 1px solid var(--ash);
+    margin-top: 8px;
+  }
+
+  .op {
+    background: var(--smoke);
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: background .2s;
+  }
+
+  .op:hover { background: #161616; }
+
+  .op-num {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--gold2);
+    line-height: 1;
+    min-width: 28px;
+  }
+
+  .op-module {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .op-label {
+    font-size: 11px;
+    color: var(--pale);
+    line-height: 1.5;
+  }
+
+  /* ── Team ────────────────────────────────────────────── */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--ash);
+    border: 1px solid var(--ash);
+    margin-top: 8px;
+  }
+
+  .team-card {
+    background: var(--smoke);
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: background .2s;
+  }
+
+  .team-card:hover { background: #161616; }
+
+  .team-initials {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 48px;
+    color: var(--ash);
+    margin-bottom: 16px;
+    transition: color .2s;
+    line-height: 1;
+  }
+
+  .team-card:hover .team-initials { color: var(--gold2); }
+
+  .team-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--paper);
+    margin-bottom: 4px;
+  }
+
+  .team-reg {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--dim);
+  }
+
+  /* ── Footer ──────────────────────────────────────────── */
+  footer {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 64px 64px;
+    border-top: 1px solid var(--ash);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .footer-left {
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--dim);
+  }
+
+  .footer-right {
+    text-align: right;
+    font-size: 10px;
+    color: var(--mist);
+    line-height: 2;
+    letter-spacing: 1px;
+  }
+
+  /* ── Scroll fade-in ──────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── Narrow screens ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    header, main, footer { padding-left: 28px; padding-right: 28px; }
+    .hero-cols { grid-template-columns: 1fr; }
+    .class-grid, .ops-grid, .team-grid { grid-template-columns: 1fr; }
+    .phase { grid-template-columns: 60px 1fr; }
+    .hero-deco { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ─────────────────────────────────────────────────────── -->
+<header>
+  <div class="header-meta">
+    <div>
+      <div class="eyebrow">OODP Project · <span>ISO C++17</span> · Semester 2</div>
+    </div>
+    <div class="header-right">
+      <div class="issue-no">5-Phase Progressive Build</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-deco">&amp;</div>
+
+    <div class="hero-title">
+      Cinema<br><em>&amp;</em> Hotel
+    </div>
+    <div class="hero-subtitle">Booking Management System</div>
+
+    <p style="font-size:11px; color:var(--pale); max-width:480px; line-height:1.9;">
+      A unified management system for a cinema hall and hotel operating under a single business entity — built progressively across five phases, each introducing a new OOP paradigm.
+    </p>
+
+    <div class="hero-cols" style="margin-top:40px;">
+      <div class="hero-stat">
+        <div class="hero-stat-n">5</div>
+        <div class="hero-stat-l">Build Phases</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">C++17</div>
+        <div class="hero-stat-l">Language Standard</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">10</div>
+        <div class="hero-stat-l">Menu Operations</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ───────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- PHASES -->
+  <div class="section-label reveal">
+    <span class="section-label-no">01</span>
+    <div class="section-label-line"></div>
+    <span class="section-label-title">Development Phases</span>
+  </div>
+
+  <div class="phases reveal">
+
+    <div class="phase">
+      <div class="phase-num">01</div>
+      <div class="phase-body">
+        <div class="phase-concept">Abstraction</div>
+        <div class="phase-title">The Foundation</div>
+        <div class="phase-desc">
+          Translated real-world entities into code. Customer, Show, and Room defined as public classes — the blueprint stage. Single object instantiation in main() as proof of concept. No security, no advanced features; just the raw foundation.
+        </div>
+        <div class="phase-tags">
+          <span class="phase-tag">Classes</span>
+          <span class="phase-tag">Objects</span>
+          <span class="phase-tag">Methods</span>
+          <span class="phase-tag">Basic I/O</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">02</div>
+      <div class="phase-body">
+        <div class="phase-concept">Encapsulation</div>
+        <div class="phase-title">The Vault</div>
+        <div class="phase-desc">
+          Private attributes with validated public setters acting as security checkpoints. Phone validated to 10-digit constraint. State transitions controlled via bookSeat() — the object now actively protects its own data.
+        </div>
+        <div class="phase-tags">
+          <span class="phase-tag">Private Members</span>
+          <span class="phase-tag">Getters/Setters</span>
+          <span class="phase-tag">Data Hiding</span>
+          <span class="phase-tag">Validation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">03</div>
+      <div class="phase-body">
+        <div class="phase-concept">Collections</div>
+        <div class="phase-title">The Database</div>
+        <div class="phase-desc">
+          Global vector&lt;T&gt; containers replace single-object instantiation. push_back() for insertion, range-based loops for traversal, iterator-based erase() for deletion. Do-while menu loop with switch-case routing completes the interactive shell.
+        </div>
+        <div class="phase-tags">
+          <span class="phase-tag">std::vector</span>
+          <span class="phase-tag">Iterators</span>
+          <span class="phase-tag">push_back</span>
+          <span class="phase-tag">Menu System</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">04</div>
+      <div class="phase-body">
+        <div class="phase-concept">Inheritance</div>
+        <div class="phase-title">The Family Tree</div>
+        <div class="phase-desc">
+          Booking established as protected base class. MovieBooking and HotelBooking derived with constructor delegation and overridden display(). The virtual keyword unlocks runtime polymorphism — each child prints its own receipt format without rewriting the base logic.
+        </div>
+        <div class="phase-tags">
+          <span class="phase-tag">Base/Derived</span>
+          <span class="phase-tag">public Inheritance</span>
+          <span class="phase-tag">Method Overriding</span>
+          <span class="phase-tag">Constructor Delegation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-num">05</div>
+      <div class="phase-body">
+        <div class="phase-concept">Integration</div>
+        <div class="phase-title">The System</div>
+        <div class="phase-desc">
+          All phases converge. bookMovie() and bookHotel() engines validate customer IDs, check seat/room availability, calculate totals, and instantiate the correct booking type — proving encapsulated entities, sequence containers, and inherited records can wire together into a functioning application.
+        </div>
+        <div class="phase-tags">
+          <span class="phase-tag">Object Interaction</span>
+          <span class="phase-tag">System Architecture</span>
+          <span class="phase-tag">Polymorphic Iteration</span>
+          <span class="phase-tag">Revenue Reporting</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CLASS HIERARCHY -->
+  <div class="section-label reveal">
+    <span class="section-label-no">02</span>
+    <div class="section-label-line"></div>
+    <span class="section-label-title">Class Hierarchy</span>
+  </div>
+
+  <div class="reveal">
+
+    <div class="class-grid">
+      <div class="class-card">
+        <div class="class-name">Customer</div>
+        <div class="class-type">Entity</div>
+        <ul class="class-attrs">
+          <li>id: int</li>
+          <li>name: string</li>
+          <li>phone: string</li>
+        </ul>
+        <ul class="class-methods">
+          <li>setPhone(string)</li>
+          <li>getId(): int</li>
+          <li>getName(): string</li>
+          <li>input() / display()</li>
+        </ul>
+      </div>
+
+      <div class="class-card">
+        <div class="class-name">Show</div>
+        <div class="class-type">Entity</div>
+        <ul class="class-attrs">
+          <li>showId: int</li>
+          <li>movieName: string</li>
+          <li>price: float</li>
+          <li>seats: int</li>
+        </ul>
+        <ul class="class-methods">
+          <li>book(int): bool</li>
+          <li>getMovie(): string</li>
+          <li>getPrice(): float</li>
+          <li>input() / display()</li>
+        </ul>
+      </div>
+
+      <div class="class-card">
+        <div class="class-name">Room</div>
+        <div class="class-type">Entity</div>
+        <ul class="class-attrs">
+          <li>roomNo: int</li>
+          <li>type: string</li>
+          <li>price: float</li>
+          <li>available: bool</li>
+        </ul>
+        <ul class="class-methods">
+          <li>markBooked()</li>
+          <li>isAvail(): bool</li>
+          <li>getPrice(): float</li>
+          <li>input() / display()</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="inherit-row">
+      <div class="inherit-box">Booking — base</div>
+      <div class="inherit-arrow">→</div>
+      <div class="inherit-box">MovieBooking</div>
+      <div class="inherit-arrow" style="color:var(--ash);">·</div>
+      <div class="inherit-box">HotelBooking</div>
+    </div>
+
+    <div class="class-grid">
+      <div class="class-card" style="grid-column:1/2;">
+        <div class="class-name">Booking</div>
+        <div class="class-type">Base Class · Protected</div>
+        <ul class="class-attrs">
+          <li>bId: int</li>
+          <li>cName: string</li>
+          <li>amount: float</li>
+        </ul>
+        <ul class="class-methods">
+          <li>Booking(id, n, a)</li>
+          <li>getAmount(): float</li>
+          <li>virtual display()</li>
+        </ul>
+      </div>
+
+      <div class="class-card derived">
+        <div class="class-name">MovieBooking</div>
+        <div class="class-type">Derived · Inherits Booking</div>
+        <ul class="class-attrs">
+          <li>movie: string</li>
+          <li>tix: int</li>
+        </ul>
+        <ul class="class-methods">
+          <li>MovieBooking(id,n,a,m,t)</li>
+          <li>display() override</li>
+        </ul>
+      </div>
+
+      <div class="class-card derived">
+        <div class="class-name">HotelBooking</div>
+        <div class="class-type">Derived · Inherits Booking</div>
+        <ul class="class-attrs">
+          <li>roomNo: int</li>
+          <li>nights: int</li>
+        </ul>
+        <ul class="class-methods">
+          <li>HotelBooking(id,n,a,r,ni)</li>
+          <li>display() override</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TECH SPEC -->
+  <div class="section-label reveal">
+    <span class="section-label-no">03</span>
+    <div class="section-label-line"></div>
+    <span class="section-label-title">Technical Specification</span>
+  </div>
+
+  <div class="reveal">
+    <table class="tech-table">
+      <tr><td>Language</td><td>C++ (ISO C++17)</td></tr>
+      <tr><td>Memory Model</td><td>Dynamic allocation — std::vector&lt;T&gt; sequence containers</td></tr>
+      <tr><td>Architecture</td><td>Monolithic, console-based, menu-driven</td></tr>
+      <tr><td>Compiler</td><td>g++ / any C++17 compatible toolchain</td></tr>
+      <tr><td>Booking IDs</td><td>Auto-incrementing from 1001 via global int nextBkId</td></tr>
+      <tr><td>Validation</td><td>Phone: 10-digit length check via setter. Seat/room: boolean semaphores</td></tr>
+      <tr><td>Polymorphism</td><td>virtual display() on Booking, overridden in each derived class</td></tr>
+      <tr><td>Version Control</td><td>Git &amp; GitHub — phase-wise commits</td></tr>
+    </table>
+  </div>
+
+  <!-- INTERFACE -->
+  <div class="section-label reveal">
+    <span class="section-label-no">04</span>
+    <div class="section-label-line"></div>
+    <span class="section-label-title">Console Interface</span>
+  </div>
+
+  <div class="ops-grid reveal">
+    <div class="op"><div class="op-num">1</div><div><div class="op-module">Customer</div><div class="op-label">Add Customer</div></div></div>
+    <div class="op"><div class="op-num">2</div><div><div class="op-module">Customer</div><div class="op-label">View All Customers</div></div></div>
+    <div class="op"><div class="op-num">3</div><div><div class="op-module">Customer</div><div class="op-label">Delete Customer</div></div></div>
+    <div class="op"><div class="op-num">4</div><div><div class="op-module">Cinema</div><div class="op-label">Add Show</div></div></div>
+    <div class="op"><div class="op-num">5</div><div><div class="op-module">Cinema</div><div class="op-label">View All Shows</div></div></div>
+    <div class="op"><div class="op-num">6</div><div><div class="op-module">Cinema</div><div class="op-label">Book Movie Ticket</div></div></div>
+    <div class="op"><div class="op-num">7</div><div><div class="op-module">Hotel</div><div class="op-label">Add Room</div></div></div>
+    <div class="op"><div class="op-num">8</div><div><div class="op-module">Hotel</div><div class="op-label">View All Rooms</div></div></div>
+    <div class="op"><div class="op-num">9</div><div><div class="op-module">Hotel</div><div class="op-label">Book Hotel Room</div></div></div>
+    <div class="op"><div class="op-num">10</div><div><div class="op-module">Reports</div><div class="op-label">All Bookings + Revenue</div></div></div>
+    <div class="op"><div class="op-num" style="color:var(--dim);">0</div><div><div class="op-module" style="color:var(--mist);">System</div><div class="op-label">Exit</div></div></div>
+    <div class="op" style="background:var(--ink);"></div>
+  </div>
+
+  <!-- TEAM -->
+  <div class="section-label reveal">
+    <span class="section-label-no">05</span>
+    <div class="section-label-line"></div>
+    <span class="section-label-title">The Team</span>
+  </div>
+
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-initials">KS</div>
+      <div class="team-name">Kunal Shukla</div>
+      <div class="team-reg">RA2511056010237</div>
+    </div>
+    <div class="team-card">
+      <div class="team-initials">KJ</div>
+      <div class="team-name">Kushagra Jain</div>
+      <div class="team-reg">RA2511056010289</div>
+    </div>
+    <div class="team-card">
+      <div class="team-initials">N</div>
+      <div class="team-name">Nourice</div>
+      <div class="team-reg">RA2511056010290</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-left">Cinema &amp; Hotel</div>
+  <div class="footer-right">
+    B.Tech CSE (Data Science)<br>
+    Semester 2 · LLT1<br>
+    SRM University
+  </div>
+</footer>
+
+<script>
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  els.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

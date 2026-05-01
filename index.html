@@ -1,0 +1,1619 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ff8a00" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="A minimal black and orange finals sprint planner with SGPA targets, focus mode, and exam tracking." />
+  <meta name="application-name" content="Finals Blackboard" />
+  <meta name="apple-mobile-web-app-title" content="Finals" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./assets/maskable-icon.svg" />
+  <title>Sem 2 Finals Command Center</title>
+  <style>
+    :root {
+      --canvas: #050505;
+      --surface: #0b0b0b;
+      --surface-2: #111111;
+      --surface-3: #181818;
+      --ink: #f7f8fb;
+      --muted: #a5a5a5;
+      --muted-2: #737373;
+      --line: rgba(255, 255, 255, 0.11);
+      --line-strong: rgba(255, 138, 0, 0.42);
+      --accent: #ff8a00;
+      --accent-2: #ffb020;
+      --accent-soft: rgba(255, 138, 0, 0.12);
+      --exam: #ffb020;
+      --danger: #ff5a3d;
+      --success: #ff8a00;
+      --white-95: rgba(255, 255, 255, 0.95);
+      --white-80: rgba(255, 255, 255, 0.8);
+      --white-62: rgba(255, 255, 255, 0.62);
+      --white-12: rgba(255, 255, 255, 0.12);
+      --white-08: rgba(255, 255, 255, 0.08);
+      --shadow-subtle: rgba(0, 0, 0, 0.42) 0px 24px 80px;
+      --shadow-micro: rgba(0, 0, 0, 0.36) 0px 1px 12px;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+        radial-gradient(circle at 80% 0%, rgba(255, 138, 0, 0.14), transparent 26rem),
+        linear-gradient(145deg, #030303 0%, #090909 48%, #000 100%);
+      background-size: 40px 40px, 40px 40px, auto, auto, auto;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 18px 0 56px;
+    }
+
+    .hero {
+      min-height: 390px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 14px;
+      align-items: stretch;
+      padding: 12px 0 16px;
+    }
+
+    .hero-copy,
+    .hero-panel,
+    .section-panel,
+    .day-card,
+    .target-card,
+    .metric-card {
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01)),
+        rgba(11, 11, 11, 0.94);
+      border-radius: 18px;
+      box-shadow: var(--shadow-micro);
+    }
+
+    .hero-copy {
+      position: relative;
+      min-height: 100%;
+      padding: clamp(24px, 4vw, 44px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(255, 138, 0, 0.10), rgba(14, 14, 14, 0.92) 42%, rgba(255, 176, 32, 0.06)),
+        var(--surface);
+    }
+
+    .hero-copy::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      bottom: -120px;
+      width: 310px;
+      height: 310px;
+      border: 1px solid rgba(255, 138, 0, 0.22);
+      border-radius: 50%;
+      background:
+        conic-gradient(from 120deg, rgba(255, 138, 0, 0.28), transparent 31%, rgba(255, 176, 32, 0.18), transparent 72%, rgba(255, 90, 61, 0.16));
+      opacity: 0.78;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255, 138, 0, 0.30);
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .brand-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .brand-mark img {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 138, 0, 0.28);
+      border-radius: 14px;
+      background: #070707;
+      box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.05);
+    }
+
+    h1 {
+      max-width: 730px;
+      margin: 22px 0 18px;
+      color: var(--white-95);
+      font-size: clamp(40px, 6vw, 64px);
+      font-weight: 800;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p {
+      max-width: 640px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 0;
+      border-radius: 14px;
+      padding: 0 17px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #120800;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: var(--shadow-subtle);
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .btn.secondary {
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--ink);
+    }
+
+    .hero-panel {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .score-card {
+      flex: 1;
+      min-height: 210px;
+      border-radius: 18px;
+      padding: 22px;
+      background:
+        linear-gradient(145deg, rgba(255, 138, 0, 0.15), rgba(17, 17, 17, 0.97) 50%, rgba(255, 176, 32, 0.07)),
+        var(--surface-2);
+      border: 1px solid rgba(255, 138, 0, 0.30);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .score-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .score-label,
+    .small-label {
+      color: var(--white-62);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.33;
+      text-transform: uppercase;
+    }
+
+    .sgpa-value {
+      margin-top: 4px;
+      color: #ffffff;
+      font-size: 72px;
+      font-weight: 850;
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+
+    .grade-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .grade-toggle button {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 11px 10px;
+      background: rgba(255,255,255,0.045);
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .grade-toggle button.active {
+      background: var(--accent);
+      color: #120800;
+      border-color: transparent;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .metric-card,
+    .tool-card {
+      padding: 14px;
+      min-height: 92px;
+    }
+
+    .metric-card strong,
+    .tool-card strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--white-95);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .tool-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.028);
+    }
+
+    .tool-card strong {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .tool-card span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .tool-card .mini-progress {
+      margin-top: 12px;
+    }
+
+    .progress-row {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .mini-progress {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .mini-progress span {
+      display: block;
+      width: var(--value);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(5, 7, 12, 0.74);
+      backdrop-filter: blur(14px);
+    }
+
+    .exam-rail-section {
+      margin: 0 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+        rgba(8,8,8,0.86);
+      overflow: hidden;
+    }
+
+    .rail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px 0;
+    }
+
+    .rail-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .rail-head span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .exam-rail {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(220px, 1fr);
+      gap: 10px;
+      overflow-x: auto;
+      padding: 14px 16px 16px;
+      scroll-snap-type: x proximity;
+    }
+
+    .exam-card {
+      scroll-snap-align: start;
+      min-height: 126px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background:
+        linear-gradient(145deg, rgba(255, 138, 0, 0.10), rgba(255,255,255,0.02)),
+        #0d0d0d;
+    }
+
+    .exam-card strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .exam-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .tools-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 0 0 14px;
+    }
+
+    .insight-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(11, 11, 11, 0.92);
+      min-height: 118px;
+    }
+
+    .insight-card strong {
+      display: block;
+      margin-top: 8px;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1.1;
+    }
+
+    .insight-card span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .tab-btn {
+      min-height: 42px;
+      border: 1px solid var(--white-12);
+      border-radius: 14px;
+      padding: 0 16px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #120800;
+      border-color: transparent;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 180px 180px;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .control {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 12px;
+      background: rgba(255,255,255,0.045);
+      color: var(--white-95);
+      outline: 0;
+    }
+
+    .control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.16);
+    }
+
+    select.control option {
+      background: var(--surface);
+      color: var(--white-95);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin: 28px 0 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 850;
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .section-title p {
+      max-width: 440px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.43;
+      text-align: right;
+    }
+
+    .day-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .day-card {
+      overflow: hidden;
+      --accent-local: var(--accent);
+      position: relative;
+    }
+
+    .day-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: var(--accent-local);
+      opacity: 0.95;
+    }
+
+    .day-summary {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      text-align: left;
+    }
+
+    .date-box {
+      height: 58px;
+      border: 1px solid color-mix(in srgb, var(--accent-local), transparent 58%);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--accent-local), transparent 88%);
+      color: var(--accent-local);
+      display: grid;
+      place-items: center;
+    }
+
+    .date-box span {
+      display: block;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .date-box small {
+      display: block;
+      margin-top: 2px;
+      color: var(--white-62);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .day-kicker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .subject {
+      color: var(--accent-local);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.33;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      border-radius: 6px;
+      padding: 0 8px;
+      background: rgba(102, 114, 135, 0.16);
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge.cream {
+      background: rgba(255, 138, 0, 0.16);
+      color: #ffcf7a;
+    }
+
+    .badge.hot {
+      background: rgba(255, 90, 61, 0.16);
+      color: #ffad9e;
+    }
+
+    .badge.quiet {
+      background: rgba(255,255,255,0.07);
+      color: var(--muted);
+    }
+
+    .day-card .badge:nth-of-type(2) {
+      background: color-mix(in srgb, var(--accent-local), transparent 84%);
+      color: var(--accent-local);
+    }
+
+    .day-main {
+      overflow: hidden;
+      color: var(--white-95);
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .day-meta {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .day-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin: 12px 0;
+    }
+
+    .tiny-btn {
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+      padding: 0 12px;
+      background: rgba(255, 138, 0, 0.10);
+      color: #ffd29a;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .day-details {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding: 0 16px 18px 88px;
+    }
+
+    .day-card.open .day-details {
+      display: block;
+    }
+
+    .coding-box,
+    .strategy-box {
+      margin: 12px 0;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--accent-local), transparent 72%);
+      background: color-mix(in srgb, var(--accent-local), transparent 91%);
+      padding: 10px 12px;
+      color: #dce7ef;
+      font-size: 14px;
+      line-height: 1.43;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      color: var(--white-80);
+      font-size: 15px;
+      line-height: 1.38;
+    }
+
+    .task input {
+      width: 18px;
+      height: 18px;
+      margin: 2px 0 0;
+      accent-color: var(--accent-local);
+    }
+
+    .task.done span {
+      color: rgba(255,255,255,0.38);
+      text-decoration: line-through;
+    }
+
+    .targets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .target-card {
+      padding: 18px;
+      --accent-local: var(--accent);
+    }
+
+    .target-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .target-card h3 {
+      margin: 0;
+      color: var(--white-95);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .target-card .code {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .grade {
+      min-width: 54px;
+      border-radius: 14px;
+      padding: 8px 10px;
+      background: color-mix(in srgb, var(--accent-local), transparent 12%);
+      color: #051014;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .sgpa-note {
+      margin: 12px 0 0;
+      color: var(--accent-local);
+      font-size: 14px;
+      line-height: 1.43;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .score-mini {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.045);
+      padding: 10px;
+    }
+
+    .score-mini div:first-child {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .score-mini div:last-child {
+      margin-top: 4px;
+      color: var(--white-95);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .progress {
+      height: 8px;
+      margin-top: 14px;
+      overflow: hidden;
+      border-radius: 9999px;
+      background: rgba(102, 114, 135, 0.20);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: var(--pct);
+      border-radius: 9999px;
+      background: linear-gradient(90deg, var(--accent-local), var(--accent-2));
+    }
+
+    .target-sim {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .sim-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .sim-field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .sim-field input,
+    .sim-field select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0 10px;
+      background: rgba(255,255,255,0.045);
+      color: var(--ink);
+      outline: 0;
+    }
+
+    .sim-field select option {
+      background: #111;
+      color: var(--ink);
+    }
+
+    .sim-result {
+      grid-column: 1 / -1;
+      padding: 10px;
+      border: 1px solid rgba(255, 138, 0, 0.20);
+      border-radius: 12px;
+      background: rgba(255, 138, 0, 0.08);
+      color: #ffd29a;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .sgpa-panel {
+      margin-top: 14px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 138, 0, 0.26);
+      background:
+        linear-gradient(135deg, rgba(255, 138, 0, 0.10), rgba(255, 176, 32, 0.05)),
+        rgba(11, 11, 11, 0.82);
+    }
+
+    .calc-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--white-08);
+      color: var(--white-80);
+      font-size: 15px;
+    }
+
+    .calc-row strong {
+      color: #ffffff;
+    }
+
+    .coding-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .coding-card {
+      min-height: 126px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(17, 19, 29, 0.88);
+      box-shadow: var(--shadow-micro);
+    }
+
+    .coding-card h3 {
+      margin: 0 0 10px;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .coding-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.43;
+    }
+
+    .focus-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(10px);
+    }
+
+    .focus-overlay.open {
+      display: grid;
+    }
+
+    .focus-card {
+      width: min(720px, 100%);
+      max-height: min(760px, calc(100vh - 36px));
+      overflow: auto;
+      border: 1px solid rgba(255, 138, 0, 0.30);
+      border-radius: 22px;
+      background:
+        linear-gradient(145deg, rgba(255, 138, 0, 0.12), rgba(10,10,10,0.98) 38%),
+        #090909;
+      box-shadow: var(--shadow-subtle);
+      padding: 22px;
+    }
+
+    .focus-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .focus-top h2 {
+      margin: 8px 0 0;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1;
+    }
+
+    .focus-close {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .focus-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 860px) {
+      .shell { width: min(100% - 24px, 1180px); padding-top: 12px; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .toolbar { grid-template-columns: 1fr; }
+      .tools-strip { grid-template-columns: 1fr 1fr; }
+      .section-title { display: block; }
+      .section-title p { text-align: left; margin-top: 8px; }
+      .targets-grid, .coding-grid { grid-template-columns: 1fr; }
+      .mini-grid, .score-grid { grid-template-columns: 1fr; }
+      .target-sim { grid-template-columns: 1fr; }
+      .day-summary { grid-template-columns: 48px minmax(0, 1fr); }
+      .day-meta { grid-column: 2; text-align: left; }
+      .day-details { padding-left: 16px; }
+      .day-main { white-space: normal; }
+      .tabs { overflow-x: auto; }
+      .tab-btn { flex: 0 0 auto; }
+      h1 { font-size: clamp(34px, 11vw, 48px); }
+      .hero-copy { min-height: 310px; }
+    }
+
+    @media (max-width: 560px) {
+      .tools-strip { grid-template-columns: 1fr; }
+      .exam-rail { grid-auto-columns: minmax(210px, 82%); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <div>
+          <div class="brand-row">
+            <div class="brand-mark">
+              <img src="./assets/icon.svg" alt="" width="42" height="42" />
+              Finals Blackboard
+            </div>
+            <div class="eyebrow">Sem 2 - May 2026</div>
+          </div>
+          <h1>Blackboard for the finals sprint.</h1>
+          <p>A minimal orange-on-black board for daily work, next-exam pressure, target scores, and the English O-grade SGPA swing.</p>
+          <div class="hero-actions">
+            <button class="btn" data-open-focus="today">Today focus</button>
+            <button class="btn secondary" data-tab-target="targets">Grade math</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="hero-panel">
+        <div class="score-card">
+          <div class="score-top">
+            <div>
+              <div class="score-label">Projected SGPA</div>
+              <div class="sgpa-value" id="sgpaValue">8.05</div>
+            </div>
+            <div class="badge cream" id="englishGradeBadge">English O</div>
+          </div>
+          <div>
+            <div class="small-label">English grade scenario</div>
+            <div class="grade-toggle">
+              <button data-english-gp="9">A+ - 7.90</button>
+              <button class="active" data-english-gp="10">O - 8.05</button>
+            </div>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="metric-card">
+            <div class="small-label">Days</div>
+            <strong id="daysLeft">19</strong>
+          </div>
+          <div class="metric-card">
+            <div class="small-label">Credits</div>
+            <strong>21</strong>
+          </div>
+          <div class="metric-card">
+            <div class="small-label">Progress</div>
+            <strong id="progressValue">0%</strong>
+          </div>
+        </div>
+        <div class="tool-grid">
+          <div class="tool-card">
+            <div class="small-label">Today focus</div>
+            <strong id="todayFocus">Loading</strong>
+            <span id="todaySubtext">Finding the next useful block.</span>
+            <div class="progress-row">
+              <div class="progress-head"><span>Today</span><span id="todayProgressLabel">0%</span></div>
+              <div class="mini-progress" style="--value: 0%" id="todayProgressBar"><span></span></div>
+            </div>
+          </div>
+          <div class="tool-card">
+            <div class="small-label">Next exam</div>
+            <strong id="nextExam">Loading</strong>
+            <span id="nextExamSubtext">Checking timeline.</span>
+            <button class="tiny-btn" style="margin-top: 12px;" id="nextExamFocusBtn" data-open-focus="today">Open focus mode</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="exam-rail-section" aria-label="Exam timeline">
+      <div class="rail-head">
+        <h2>Exam rail</h2>
+        <span>Side-scroll timeline</span>
+      </div>
+      <div class="exam-rail" id="examRail"></div>
+    </section>
+
+    <section class="tools-strip" aria-label="Study tools">
+      <div class="insight-card">
+        <div class="small-label">Layout</div>
+        <strong>Asymmetric</strong>
+        <span>Hero prioritizes action. Board handles execution below.</span>
+      </div>
+      <div class="insight-card">
+        <div class="small-label">Pattern</div>
+        <strong>F-scan</strong>
+        <span>Search, filters, then daily cards in fast reading order.</span>
+      </div>
+      <div class="insight-card">
+        <div class="small-label">Tool</div>
+        <strong>Simulator</strong>
+        <span>Edit grade points and finals marks to test SGPA paths.</span>
+      </div>
+      <div class="insight-card">
+        <div class="small-label">Mode</div>
+        <strong>Focus</strong>
+        <span>Open one day or exam as a distraction-free checklist.</span>
+      </div>
+    </section>
+
+    <nav class="tabs" aria-label="Sections">
+      <button class="tab-btn active" data-tab-target="plan">Plan</button>
+      <button class="tab-btn" data-tab-target="targets">Targets</button>
+      <button class="tab-btn" data-tab-target="coding">Coding</button>
+    </nav>
+
+    <section id="plan" class="tab-panel">
+      <div class="section-title">
+        <h2>Daily board.</h2>
+        <p>Search, filter, expand, and check off tasks. The page remembers your progress.</p>
+      </div>
+
+      <div class="toolbar">
+        <input class="control" id="searchInput" type="search" placeholder="Search topics, tasks, strategy..." />
+        <select class="control" id="subjectFilter">
+          <option value="all">All subjects</option>
+        </select>
+        <select class="control" id="statusFilter">
+          <option value="all">All days</option>
+          <option value="exam">Exam days</option>
+          <option value="coding">Coding days</option>
+        </select>
+      </div>
+
+      <div class="day-list" id="dayList"></div>
+    </section>
+
+    <section id="targets" class="tab-panel hidden">
+      <div class="section-title">
+        <h2>Finals targets.</h2>
+        <p>Everything points back to the SGPA math: English O is the decisive three-point upgrade.</p>
+      </div>
+      <div class="targets-grid" id="targetsGrid"></div>
+      <div class="sgpa-panel">
+        <div class="small-label">SGPA calculation</div>
+        <div id="sgpaRows"></div>
+      </div>
+    </section>
+
+    <section id="coding" class="tab-panel hidden">
+      <div class="section-title">
+        <h2>Coding hour.</h2>
+        <p>A compact May 2-7 ramp: Python basics into data analysis and plotting.</p>
+      </div>
+      <div class="coding-grid" id="codingGrid"></div>
+    </section>
+  </main>
+
+  <div class="focus-overlay" id="focusOverlay" aria-hidden="true">
+    <div class="focus-card" role="dialog" aria-modal="true" aria-labelledby="focusTitle">
+      <div class="focus-top">
+        <div>
+          <div class="eyebrow" id="focusDate">May</div>
+          <h2 id="focusTitle">Focus mode</h2>
+        </div>
+        <button class="focus-close" type="button" data-close-focus>x</button>
+      </div>
+      <div class="focus-meta" id="focusMeta"></div>
+      <div class="task-list" id="focusTasks"></div>
+      <div class="strategy-box" id="focusStrategy"></div>
+    </div>
+  </div>
+
+  <script>
+    const finalsTargets = {
+      CE:   { name: "English",       credits: 3, internal: 32.50, tba: "Model: 23+/25 (92%)", finalTarget: 34, finalOf: 40, pct: 85, projected: "91+", grade: "O",  gp: 10, sgpaNote: "SGPA decider: O vs A+ = 8.05 vs 7.90" },
+      EEE:  { name: "EEE",           credits: 4, internal: "37.50 expected", tba: "-",       finalTarget: 34, finalOf: 40, pct: 85, projected: "71+", grade: "A",  gp: 8 },
+      ACCA: { name: "Maths (ACCA)",  credits: 4, internal: "24.10, FT-III absent", tba: "-",  finalTarget: 32, finalOf: 40, pct: 80, projected: "56+", grade: "B",  gp: 6, sgpaNote: "Lowest GP: just need 56+ total" },
+      OODP: { name: "OOPS (OODP)",   credits: 3, internal: 23.39, tba: "Model: 20+/25 (80%)", finalTarget: 28, finalOf: 40, pct: 70, projected: "71+", grade: "A",  gp: 8, sgpaNote: "Easiest finals target: only 28/40 needed" },
+      SPCM: { name: "Semiconductor", credits: 5, internal: 44.79, tba: "Practical: 7+/8 (87%)", finalTarget: 29, finalOf: 40, pct: 72, projected: "81+", grade: "A+", gp: 9, sgpaNote: "Strong internals: only 29/40 in finals" },
+      EGD:  { name: "EGD",           credits: 2, internal: 33.75, tba: "Done", finalTarget: 33, finalOf: 40, pct: 82, projected: "66.75", grade: "B+", gp: 7, done: true },
+    };
+
+    const codingTopics = {
+      "May 2": "Python: Lists, loops, functions - warm up",
+      "May 3": "Python: Classes & Objects, connected to OOPS theory",
+      "May 4": "Python: Dicts, Sets, File I/O",
+      "May 5": "NumPy: arrays, reshape, operations",
+      "May 6": "Pandas: DataFrame, read_csv, groupby",
+      "May 7": "Matplotlib: line, bar, scatter plots",
+    };
+
+    const days = [
+      { date: "May 2", dayNum: 2, weekday: "Sat", subject: "EEE", isExam: false, hours: 4, codingHour: true, mainTask: "EEE Prep - Units 3 & 4 (Test-2 is May 4)", tasks: ["DC motor: construction diagram + working principle", "Transformer: step-up/step-down + efficiency formula", "LVDT diagram + working, most asked transducer", "Classification table: Active vs Passive transducers"], strategy: "Draw each diagram 2x from memory after watching 1 video" },
+      { date: "May 3", dayNum: 3, weekday: "Sun", subject: "EEE", isExam: false, hours: 5, codingHour: true, mainTask: "EEE Prep - Unit 5 + Revision of Units 3,4,5", tasks: ["Smart grid layout diagram", "EV types: HEV / PHEV / BEV one-liners", "Solar PV: basic I-V curve", "Rapid revision: all 3 units, 45 min each", "Write key formulas + 1 diagram per unit on a single revision sheet"], strategy: "Finish by evening. Rest well. Test is tomorrow morning." },
+      { date: "May 4", dayNum: 4, weekday: "Mon", subject: "OOPS", isExam: false, hours: 5, codingHour: true, mainTask: "EEE Test-2 morning, then OOPS Units 1 & 2", tasks: ["Morning: EEE Test-2 exam", "Post-exam: OOPS Unit 1 - Class, Object, Constructors, Destructors", "Post-exam: OOPS Unit 2 - Function overloading, Operator overloading, Virtual functions", "Access specifiers: public / private / protected, write 1 example"], strategy: "Treat the rest of the day as a full OOPS session" },
+      { date: "May 5", dayNum: 5, weekday: "Tue", subject: "OOPS", isExam: false, hours: 7, codingHour: true, mainTask: "OOPS Units 3, 4 & 5 - Complete all remaining units", tasks: ["Inheritance: Single, Multiple, Multilevel, Hybrid syntax", "Virtual base class + Abstract class + Pure virtual function", "Templates & Exceptions: function template, class template, try-catch", "STL: vector, map, stack methods + sort(), find(), count()", "Quick UML sketch: Class Diagram + Use Case Diagram"], strategy: "All 5 OOPS units done in 2 days, then revise after Maths" },
+      { date: "May 6", dayNum: 6, weekday: "Wed", subject: "Maths", isExam: false, hours: 6, codingHour: true, mainTask: "Units 1 & 2 - Integral Calculus + Vector Calculus", tasks: ["Double integrals: 5 standard Cartesian problems", "Area using double integrals + change of order", "Grad, Div, Curl formula card + 3 problems each", "Green's theorem statement + 1 solved problem"], strategy: "Target B+: focus on applying formulas, not deriving them" },
+      { date: "May 7", dayNum: 7, weekday: "Thu", subject: "Maths", isExam: false, hours: 6, codingHour: true, mainTask: "Units 3 & 4 - Laplace Transform + Analytic Functions", tasks: ["Memorize 10 standard Laplace pairs, write 3x", "Solve 4 ODE problems using LT", "Cauchy-Riemann equations: verify analyticity in 5 functions", "Conformal mappings: definition + 1 example only"], strategy: "Last coding day. Laplace pairs are the biggest marks booster" },
+      { date: "May 8", dayNum: 8, weekday: "Fri", subject: "Maths", isExam: false, hours: 6, codingHour: false, mainTask: "Unit 5 - Complex Integration + Previous Year Problems", tasks: ["Cauchy's integral formula: 3 direct problems", "Residue theorem: find residue at poles, 3 problems", "Timed: 2 problems per unit in 12 min each", "Identify 2 weakest topics and re-do them"], strategy: "Rapid revision: Units 1-5, one page notes per unit" },
+      { date: "May 9", dayNum: 9, weekday: "Sat", subject: "Maths", isExam: false, hours: 5, codingHour: false, mainTask: "Maths Weak Areas + Formula Sheet Finalization", tasks: ["Re-attempt problems you got wrong on May 8", "Finalize 1-page formula sheet: Laplace pairs, CR equations, Theorems", "Practice 1 full question set under timed conditions"], strategy: "Stop studying new content. Strengthen what you already know" },
+      { date: "May 10", dayNum: 10, weekday: "Sun", subject: "Maths", isExam: false, hours: 4, codingHour: false, mainTask: "Maths Final Mock + Light Revision", tasks: ["Morning: Final mock, 5 questions, 1 per unit", "Afternoon: Read formula sheet only", "Rest early. Exam tomorrow"], strategy: "4 hours max. Do not burn out the night before exam" },
+      { date: "May 11", dayNum: 11, weekday: "Mon", subject: "MATHS EXTERNAL", isExam: true, hours: 3, codingHour: false, mainTask: "Formula card, exam, then OOPS full revision", tasks: ["Morning: Read formula sheet - Laplace pairs + CR equations", "MATHS EXTERNAL EXAM", "Evening: OOPS Units 1 & 2 revision"], strategy: "You learned OOPS on May 4-5. Today just revive the memory" },
+      { date: "May 12", dayNum: 12, weekday: "Tue", subject: "OOPS Revision", isExam: false, hours: 7, codingHour: false, mainTask: "OOPS Units 3, 4 & 5 Revision + Code Writing", tasks: ["Re-write all inheritance types from memory", "Virtual base class + Abstract class hierarchy", "Re-write template + exception handling programs", "Re-write STL examples: vector, map, stack, sort/find/count"], strategy: "Write every concept as code. Do not just read notes" },
+      { date: "May 13", dayNum: 13, weekday: "Wed", subject: "OOPS Revision", isExam: false, hours: 7, codingHour: false, mainTask: "Full OOPS Mock + UML Diagrams", tasks: ["Draw Class, Sequence, Use Case, Activity diagrams", "Write 1 complete C++ program using Inheritance + STL", "Revise all syntax sheets end-to-end"], strategy: "Target 35/40. Attempt every unit in the exam" },
+      { date: "May 14", dayNum: 14, weekday: "Thu", subject: "OOPS EXTERNAL", isExam: true, hours: 3, codingHour: false, mainTask: "Syntax recap, exam, then EEE all 5 units", tasks: ["Morning: Read through syntax sheet", "OOPS EXTERNAL EXAM", "Evening: EEE rapid revision, 30 min per unit"], strategy: "EEE tonight: formulas, machine diagrams, transducer table" },
+      { date: "May 15", dayNum: 15, weekday: "Fri", subject: "EEE EXTERNAL", isExam: true, hours: 4, codingHour: false, mainTask: "EEE recap, exam, then serious English prep", tasks: ["Morning: Flip through EEE revision sheet", "EEE EXTERNAL EXAM", "Evening: English all 5 units", "Focus: Letter formats, CV/Resume, Report structure, Presentation techniques", "Practice 1 business letter + 1 mock CV entry"], strategy: "English is the SGPA swinger. Treat this as the most important session" },
+      { date: "May 16", dayNum: 16, weekday: "Sat", subject: "ENGLISH EXTERNAL", isExam: true, hours: 3, codingHour: false, mainTask: "English final check, exam, then Semiconductor Units 1 & 2", tasks: ["Morning: Skim Units 1-3 quickly", "ENGLISH EXTERNAL EXAM", "Evening: Semiconductor Unit 1 - Band diagrams, Fermi level, Hall effect", "Evening: Semiconductor Unit 2 - n-type/p-type, p-n junction basics"], strategy: "Strong subject. Do not over-prepare. Focus post-exam on Semiconductor" },
+      { date: "May 17", dayNum: 17, weekday: "Sun", subject: "Semiconductor", isExam: false, hours: 7, codingHour: false, mainTask: "Units 1 & 2 - Energy Bands + Carrier Transport", tasks: ["E-k diagram: direct vs indirect bandgap", "Fermi level in intrinsic/extrinsic, sketch all 3", "Drift + diffusion current formulas", "p-n junction I-V characteristic curve", "Ohmic contact vs p-n junction contact"], strategy: "Highest credits + A+ target. This is the SGPA backbone" },
+      { date: "May 18", dayNum: 18, weekday: "Mon", subject: "Semiconductor", isExam: false, hours: 7, codingHour: false, mainTask: "Units 3 & 4 - Optoelectronics + Measurements", tasks: ["LED working + band diagram", "Solar cell: p-n junction + I-V curve + efficiency", "Spontaneous vs Stimulated emission comparison", "4-point probe vs 2-point probe setup", "Hall measurement setup + what it measures"], strategy: "For Unit 4, focus on what each technique measures" },
+      { date: "May 19", dayNum: 19, weekday: "Tue", subject: "Semiconductor", isExam: false, hours: 7, codingHour: false, mainTask: "Unit 5 - Low Dimensional Materials + Full Revision", tasks: ["0D/1D/2D classification table with examples", "CNT properties + CVD synthesis", "SEM vs TEM vs AFM vs XRD comparison table", "Graphene structure + electrical properties", "Full revision: formula + diagram summary"], strategy: "Make a 1-page cheat sheet per unit tonight" },
+      { date: "May 20", dayNum: 20, weekday: "Wed", subject: "SEMICONDUCTOR EXTERNAL", isExam: true, hours: 2, codingHour: false, mainTask: "Cheat sheet read, exam, all done", tasks: ["Morning: Read 5 unit summary sheets, 10 min each", "SEMICONDUCTOR EXTERNAL EXAM", "All 6 exams complete. SGPA target: 8.05"], strategy: "You survived 20 days from zero. Finish clean" },
+    ];
+
+    const storeKey = "sem2-finals-checks-v1";
+    const simStoreKey = "sem2-finals-simulator-v1";
+    const checks = JSON.parse(localStorage.getItem(storeKey) || "{}");
+    const simState = JSON.parse(localStorage.getItem(simStoreKey) || "{}");
+    let englishGp = 10;
+
+    const subjectColors = {
+      English: "#ffb020",
+      EEE: "#ff8a00",
+      Maths: "#ff9f1c",
+      OOPS: "#ffb454",
+      Semiconductor: "#ff6b35",
+      EGD: "#a3a3a3",
+      ACCA: "#ff9f1c",
+      OODP: "#ffb454",
+      SPCM: "#ff6b35",
+      CE: "#ffb020",
+    };
+
+    const $ = (selector, root = document) => root.querySelector(selector);
+    const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+    const gpToGrade = { 10: "O", 9: "A+", 8: "A", 7: "B+", 6: "B", 5: "C" };
+
+    function setTab(id) {
+      $$(".tab-panel").forEach(panel => panel.classList.toggle("hidden", panel.id !== id));
+      $$(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tabTarget === id));
+      if (id === "targets") renderSgpaRows();
+    }
+
+    function getTaskKey(day, index) {
+      return `${day.date}-${index}`;
+    }
+
+    function getDayProgress(day) {
+      const done = day.tasks.filter((_, index) => checks[getTaskKey(day, index)]).length;
+      return { done, total: day.tasks.length, pct: Math.round((done / day.tasks.length) * 100) };
+    }
+
+    function getTargetGp(code, subject) {
+      return Number(simState[code]?.gp ?? subject.gp);
+    }
+
+    function saveSim() {
+      localStorage.setItem(simStoreKey, JSON.stringify(simState));
+      updateSgpaFromSimulator();
+      renderSgpaRows();
+    }
+
+    function saveChecks() {
+      localStorage.setItem(storeKey, JSON.stringify(checks));
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const total = days.reduce((sum, day) => sum + day.tasks.length, 0);
+      const done = Object.values(checks).filter(Boolean).length;
+      $("#progressValue").textContent = `${Math.round((done / total) * 100)}%`;
+      updateTools();
+    }
+
+    function updateSgpa() {
+      updateSgpaFromSimulator();
+      renderSgpaRows();
+    }
+
+    function todayDayNum() {
+      const now = new Date();
+      if (now.getFullYear() === 2026 && now.getMonth() === 4) return now.getDate();
+      return 2;
+    }
+
+    function updateDaysLeft() {
+      const now = new Date();
+      const end = new Date(2026, 4, 20);
+      const diff = Math.max(0, Math.ceil((end - now) / 86400000));
+      $("#daysLeft").textContent = String(diff);
+    }
+
+    function updateTools() {
+      const currentDay = todayDayNum();
+      const today = days.find(day => day.dayNum === currentDay) || days.find(day => day.dayNum > currentDay) || days[0];
+      const nextExam = days.find(day => day.isExam && day.dayNum >= currentDay) || days.find(day => day.isExam);
+      const todayDone = today.tasks.filter((_, index) => checks[getTaskKey(today, index)]).length;
+      const todayProgress = getDayProgress(today);
+
+      $("#todayFocus").textContent = today.subject;
+      $("#todaySubtext").textContent = `${today.mainTask} - ${todayDone}/${today.tasks.length} tasks done`;
+      $("#todayProgressLabel").textContent = `${todayProgress.pct}%`;
+      $("#todayProgressBar").style.setProperty("--value", `${todayProgress.pct}%`);
+
+      if (nextExam) {
+        const gap = Math.max(0, nextExam.dayNum - currentDay);
+        $("#nextExam").textContent = nextExam.subject;
+        $("#nextExamSubtext").textContent = gap === 0 ? "Today - keep it light and precise" : `In ${gap} day${gap === 1 ? "" : "s"} - ${nextExam.date}`;
+        $("#nextExamFocusBtn").dataset.openFocus = nextExam.date;
+      }
+    }
+
+    function getUrgencyBadges(day) {
+      const currentDay = todayDayNum();
+      const daysAway = day.dayNum - currentDay;
+      const badges = [];
+      if (day.isExam) badges.push({ label: daysAway === 0 ? "Exam today" : `Exam in ${Math.max(0, daysAway)}d`, hot: daysAway <= 2 });
+      if (day.hours >= 7) badges.push({ label: "Heavy day" });
+      if (day.codingHour) badges.push({ label: "Coding" });
+      if (day.subject.includes("ENGLISH")) badges.push({ label: "SGPA critical", hot: true });
+      if (day.subject.includes("Semiconductor")) badges.push({ label: "5 credits" });
+      return badges;
+    }
+
+    function updateSgpaFromSimulator() {
+      const totalCredits = Object.entries(finalsTargets).reduce((sum, [, s]) => sum + s.credits, 0);
+      const totalPoints = Object.entries(finalsTargets).reduce((sum, [code, s]) => sum + s.credits * getTargetGp(code, s), 0);
+      $("#sgpaValue").textContent = (totalPoints / totalCredits).toFixed(2);
+      const ceGp = getTargetGp("CE", finalsTargets.CE);
+      $("#englishGradeBadge").textContent = `English ${gpToGrade[ceGp] || ceGp}`;
+      $$("[data-english-gp]").forEach(btn => btn.classList.toggle("active", Number(btn.dataset.englishGp) === ceGp));
+    }
+
+    function getNumericInternal(value) {
+      if (typeof value === "number") return value;
+      const match = String(value).match(/\d+(\.\d+)?/);
+      return match ? Number(match[0]) : 0;
+    }
+
+    function openFocus(dayKey) {
+      const currentDay = todayDayNum();
+      const day = dayKey === "today"
+        ? (days.find(d => d.dayNum === currentDay) || days.find(d => d.dayNum > currentDay) || days[0])
+        : days.find(d => d.date === dayKey);
+      if (!day) return;
+
+      const progress = getDayProgress(day);
+      $("#focusDate").textContent = `${day.date} - ${day.weekday}`;
+      $("#focusTitle").textContent = day.subject;
+      $("#focusMeta").textContent = `${day.mainTask} - ${day.hours}h - ${progress.done}/${progress.total} tasks done`;
+      $("#focusTasks").innerHTML = day.tasks.map((task, index) => {
+        const key = getTaskKey(day, index);
+        const done = Boolean(checks[key]);
+        return `
+          <label class="task ${done ? "done" : ""}">
+            <input type="checkbox" data-task-key="${key}" ${done ? "checked" : ""} />
+            <span>${task}</span>
+          </label>
+        `;
+      }).join("");
+      $("#focusStrategy").innerHTML = `<strong>Strategy:</strong> ${day.strategy}`;
+      $("#focusOverlay").classList.add("open");
+      $("#focusOverlay").setAttribute("aria-hidden", "false");
+    }
+
+    function closeFocus() {
+      $("#focusOverlay").classList.remove("open");
+      $("#focusOverlay").setAttribute("aria-hidden", "true");
+    }
+
+    function renderSubjectFilter() {
+      const subjects = [...new Set(days.map(day => day.subject.replace(" EXTERNAL", "").replace(" Revision", "")))];
+      $("#subjectFilter").insertAdjacentHTML("beforeend", subjects.map(s => `<option value="${s}">${s}</option>`).join(""));
+    }
+
+    function renderExamRail() {
+      const currentDay = todayDayNum();
+      const exams = days.filter(day => day.isExam);
+      $("#examRail").innerHTML = exams.map(day => {
+        const gap = Math.max(0, day.dayNum - currentDay);
+        const accent = Object.entries(subjectColors).find(([key]) => day.subject.includes(key))?.[1] || "#ff8a00";
+        return `
+          <article class="exam-card" style="--accent-local: ${accent}">
+            <div class="small-label">${day.date} - ${day.weekday}</div>
+            <strong>${day.subject}</strong>
+            <p>${gap === 0 ? "Today" : `${gap} day${gap === 1 ? "" : "s"} away`} - ${day.hours}h plan</p>
+            <button class="tiny-btn" type="button" data-open-focus="${day.date}" style="margin-top: 12px;">Focus</button>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderDays() {
+      const list = $("#dayList");
+      const q = $("#searchInput").value.trim().toLowerCase();
+      const subject = $("#subjectFilter").value;
+      const status = $("#statusFilter").value;
+      const currentDay = todayDayNum();
+
+      const filtered = days.filter(day => {
+        const haystack = [day.date, day.subject, day.mainTask, day.strategy, ...day.tasks].join(" ").toLowerCase();
+        const subjectMatch = subject === "all" || day.subject.includes(subject);
+        const statusMatch = status === "all" || (status === "exam" && day.isExam) || (status === "coding" && day.codingHour);
+        return haystack.includes(q) && subjectMatch && statusMatch;
+      });
+
+      list.innerHTML = filtered.map(day => {
+        const isToday = day.dayNum === currentDay;
+        const accent = Object.entries(subjectColors).find(([key]) => day.subject.includes(key))?.[1] || "#ff8a00";
+        const progress = getDayProgress(day);
+        const urgency = getUrgencyBadges(day).map(badge => `<span class="badge ${badge.hot ? "hot" : "quiet"}">${badge.label}</span>`).join("");
+        const tasks = day.tasks.map((task, index) => {
+          const key = getTaskKey(day, index);
+          const done = Boolean(checks[key]);
+          return `
+            <label class="task ${done ? "done" : ""}">
+              <input type="checkbox" data-task-key="${key}" ${done ? "checked" : ""} />
+              <span>${task}</span>
+            </label>
+          `;
+        }).join("");
+
+        return `
+          <article class="day-card ${isToday ? "open" : ""}" data-day="${day.date}" style="--accent-local: ${accent}">
+            <button class="day-summary" type="button" aria-expanded="${isToday ? "true" : "false"}">
+              <div class="date-box">
+                <span>${day.dayNum}</span>
+                <small>${day.weekday}</small>
+              </div>
+              <div>
+                <div class="day-kicker">
+                  <span class="subject">${day.subject}</span>
+                  ${isToday ? `<span class="badge cream">Today</span>` : ""}
+                  ${urgency}
+                </div>
+                <div class="day-main">${day.mainTask}</div>
+              </div>
+              <div class="day-meta">${day.hours}h - ${progress.pct}%</div>
+            </button>
+            <div class="day-details">
+              <div class="day-actions">
+                <div class="progress-head"><span>Progress</span><span>${progress.done}/${progress.total}</span></div>
+                <button class="tiny-btn" type="button" data-open-focus="${day.date}">Focus mode</button>
+              </div>
+              <div class="mini-progress" style="--value: ${progress.pct}%"><span></span></div>
+              ${day.codingHour && codingTopics[day.date] ? `<div class="coding-box"><strong>Coding:</strong> ${codingTopics[day.date]}</div>` : ""}
+              <div class="task-list">${tasks}</div>
+              <div class="strategy-box"><strong>Strategy:</strong> ${day.strategy}</div>
+            </div>
+          </article>
+        `;
+      }).join("") || `<div class="section-panel" style="padding: 20px;">No days match that filter.</div>`;
+    }
+
+    function renderTargets() {
+      $("#targetsGrid").innerHTML = Object.entries(finalsTargets).map(([code, s]) => `
+        <article class="target-card" style="--accent-local: ${subjectColors[code] || subjectColors[s.name.split(" ")[0]] || "#ff8a00"}">
+          <div class="target-head">
+            <div>
+              <h3>${s.done ? "Done: " : ""}${s.name}</h3>
+              <div class="code">${code} - ${s.credits} credits</div>
+            </div>
+            <div class="grade">${s.grade}</div>
+          </div>
+          ${s.sgpaNote ? `<p class="sgpa-note">${s.sgpaNote}</p>` : ""}
+          <div class="score-grid">
+            <div class="score-mini"><div>Internals</div><div>${s.internal}</div></div>
+            <div class="score-mini"><div>TBA</div><div>${s.tba}</div></div>
+            <div class="score-mini"><div>Finals Need</div><div>${s.finalTarget}/${s.finalOf} - ${s.pct}%</div></div>
+          </div>
+          <div class="progress" style="--pct: ${s.pct}%"><span></span></div>
+          <div class="target-sim">
+            <div class="sim-field">
+              <label for="final-${code}">Expected finals</label>
+              <input id="final-${code}" data-sim-final="${code}" type="number" min="0" max="${s.finalOf}" step="0.5" value="${simState[code]?.final ?? s.finalTarget}" />
+            </div>
+            <div class="sim-field">
+              <label for="gp-${code}">Grade point</label>
+              <select id="gp-${code}" data-sim-gp="${code}">
+                ${[10,9,8,7,6,5].map(gp => `<option value="${gp}" ${getTargetGp(code, s) === gp ? "selected" : ""}>${gpToGrade[gp]} - GP ${gp}</option>`).join("")}
+              </select>
+            </div>
+            <div class="sim-result" id="sim-result-${code}">
+              Known total with finals: ${(getNumericInternal(s.internal) + Number(simState[code]?.final ?? s.finalTarget)).toFixed(1)}. SGPA uses selected GP.
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSgpaRows() {
+      const rows = Object.entries(finalsTargets).map(([code, s]) => {
+        const gp = getTargetGp(code, s);
+        return [`${code} (${s.name})`, `${s.credits} x ${gp}`, s.credits * gp];
+      });
+      const total = rows.reduce((sum, row) => sum + row[2], 0);
+      const credits = Object.values(finalsTargets).reduce((sum, s) => sum + s.credits, 0);
+      $("#sgpaRows").innerHTML = rows.map(row => `
+        <div class="calc-row">
+          <span>${row[0]}</span>
+          <span>${row[1]} = <strong>${row[2]}</strong></span>
+        </div>
+      `).join("") + `
+        <div class="calc-row" style="border-bottom: 0; padding-top: 14px;">
+          <strong>Total</strong>
+          <strong>${total} / ${credits} = ${(total / credits).toFixed(2)}</strong>
+        </div>
+      `;
+    }
+
+    function renderCoding() {
+      $("#codingGrid").innerHTML = Object.entries(codingTopics).map(([date, topic]) => `
+        <article class="coding-card">
+          <h3>${date}</h3>
+          <p>${topic}</p>
+        </article>
+      `).join("");
+    }
+
+    document.addEventListener("click", event => {
+      const tabButton = event.target.closest("[data-tab-target]");
+      if (tabButton) setTab(tabButton.dataset.tabTarget);
+
+      const focusButton = event.target.closest("[data-open-focus]");
+      if (focusButton) {
+        event.stopPropagation();
+        openFocus(focusButton.dataset.openFocus);
+      }
+
+      if (event.target.closest("[data-close-focus]") || event.target.id === "focusOverlay") {
+        closeFocus();
+      }
+
+      const jump = event.target.closest("[data-jump='today']");
+      if (jump) {
+        setTab("plan");
+        const today = $(`[data-day="May ${todayDayNum()}"]`);
+        if (today) {
+          today.classList.add("open");
+          today.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      const summary = event.target.closest(".day-summary");
+      if (summary) {
+        const card = summary.closest(".day-card");
+        const isOpen = card.classList.toggle("open");
+        summary.setAttribute("aria-expanded", String(isOpen));
+      }
+
+      const gradeButton = event.target.closest("[data-english-gp]");
+      if (gradeButton) {
+        englishGp = Number(gradeButton.dataset.englishGp);
+        simState.CE = { ...(simState.CE || {}), gp: englishGp };
+        saveSim();
+        renderTargets();
+        updateSgpa();
+      }
+    });
+
+    document.addEventListener("change", event => {
+      if (event.target.matches("[data-task-key]")) {
+        checks[event.target.dataset.taskKey] = event.target.checked;
+        $$(`[data-task-key="${event.target.dataset.taskKey}"]`).forEach(input => {
+          input.checked = event.target.checked;
+          input.closest(".task").classList.toggle("done", event.target.checked);
+        });
+        saveChecks();
+        renderDays();
+      }
+      if (event.target.matches("#subjectFilter, #statusFilter")) renderDays();
+      if (event.target.matches("[data-sim-final]")) {
+        const code = event.target.dataset.simFinal;
+        simState[code] = { ...(simState[code] || {}), final: event.target.value };
+        saveSim();
+        renderTargets();
+      }
+      if (event.target.matches("[data-sim-gp]")) {
+        const code = event.target.dataset.simGp;
+        simState[code] = { ...(simState[code] || {}), gp: Number(event.target.value) };
+        if (code === "CE") englishGp = Number(event.target.value);
+        saveSim();
+        renderTargets();
+      }
+    });
+
+    $("#searchInput").addEventListener("input", renderDays);
+
+    renderSubjectFilter();
+    renderExamRail();
+    renderDays();
+    renderTargets();
+    renderSgpaRows();
+    renderCoding();
+    updateSgpa();
+    updateDaysLeft();
+    updateProgress();
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

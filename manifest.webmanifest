@@ -1,0 +1,26 @@
+{
+  "name": "Finals Blackboard",
+  "short_name": "Finals",
+  "description": "A minimal black and orange finals sprint planner with SGPA targets, focus mode, and exam tracking.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050505",
+  "theme_color": "#ff8a00",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/maskable-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
